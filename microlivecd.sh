@@ -28,8 +28,8 @@ for arch in $ARCH; do
     # xorriso extracts everything as readonly, add write permission for the current user
     chmod -R u+w * .disk
     chmod +x .disk/mkisofs
-    # Remove big directories
-    rm -rf pool
+    # Remove unused stuff
+    rm -rf dists pool doc README*
     # Only keep the first Grub menuentry
     sed -i '/}/q' boot/grub/grub.cfg
     # Rename it to just "Go"
