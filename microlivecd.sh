@@ -1,16 +1,16 @@
 #!/bin/bash -e
 
-# Requires xorriso:
-# $ sudo apt-get install xorriso [On Debian/Ubuntu systems]
-# $ sudo yum install xorriso     [On CentOS/RHEL systems]
+# Requires xorriso and isolinux/syslinux:
+# $ sudo apt-get install xorriso isolinux [On Debian/Ubuntu systems]
+# $ sudo yum install xorriso syslinux     [On CentOS/RHEL systems]
 
 # Config:
-ARCH="amd64 ppc64el"
+ARCH="amd64 arm64 ppc64el"
 DEB_VERSION="10.4.0"
 
 for arch in $ARCH; do
     TMP=`mktemp -d`
-    ISO=`mktemp --suffix=iso`
+    ISO=`mktemp --suffix=.iso`
     DEST="`pwd`/microlivecd_${arch}.iso"
 
     # Remove any existing MicroLiveCD iso
@@ -42,7 +42,6 @@ for arch in $ARCH; do
     # - *not* be quiet
     # - log to ttyS0
     sed -i 's|linux\s\+\([^ ]\+\).*|linux \1 init=/bin/ash console=tty1 console=ttyS0|' boot/grub/grub.cfg
-
     # Build microlivecd.iso
     # .disk/mkisofs contains the xorriso command used to build the Debian iso
     # Some changes are required:
@@ -54,10 +53,14 @@ for arch in $ARCH; do
     sed -i 's|-md5-list [^ ]\+||' .disk/mkisofs
     sed -i 's|-checksum_algorithm_iso [^ ]\+||' .disk/mkisofs
     # - Fix the location of isohdpfx.bin
-    sed -i 's|[^ ]*isohdpfx.bin|/usr/share/syslinux/isohdpfx.bin|' .disk/mkisofs
+    if [ -e /usr/share/syslinux/isohdpfx.bin ]; then
+        sed -i 's|[^ ]*isohdpfx.bin|/usr/share/syslinux/isohdpfx.bin|' .disk/mkisofs
+    elif [ -e /usr/lib/ISOLINUX/isohdpfx.bin ]; then
+        sed -i 's|[^ ]*isohdpfx.bin|/usr/lib/ISOLINUX/isohdpfx.bin|' .disk/mkisofs
+    fi
     # - Fix the source directory
-    sed -i "s|boot1 CD1|CD1|" .disk/mkisofs
-    sed -i "s|CD1|${TMP}|" .disk/mkisofs
+    sed -i "s|boot1 CD1|CD1|" .disk/mkisofs # For ppc64el
+    sed -i "s|[^ ]*CD1|${TMP}|g" .disk/mkisofs
     # Run the script
     ./.disk/mkisofs
 
