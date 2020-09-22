@@ -6,7 +6,7 @@
 
 # Config:
 ARCH="amd64 arm64 ppc64el"
-DEB_VERSION="10.4.0"
+DEB_VERSION="10.5.0"
 
 for arch in $ARCH; do
     TMP=`mktemp -d`
